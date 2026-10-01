@@ -1,0 +1,35 @@
+name: Dionysos
+options:
+  bundleIdPrefix: com.mirazbakis
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
+
+targets:
+  Dionysos:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - Dionysos.icon
+      - path: App/Dionysos.icon
+        buildPhase: resources
+    dependencies:
+      - framework: DionysosFFI.xcframework
+        embed: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mirazbakis.Dionysos
+        INFOPLIST_FILE: App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: Dionysos
+        OTHER_LDFLAGS: "-lc++"
+        GENERATE_INFOPLIST_FILE: NO

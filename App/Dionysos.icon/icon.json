@@ -1,0 +1,58 @@
+{
+  "features" : [
+    "refractivity",
+    "specular-location"
+  ],
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.23100,0.52200,1.00000,1.00000",
+      "display-p3:0.03500,0.07500,0.18800,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "blur-material" : 0.3,
+      "layers" : [
+        {
+          "image-name" : "Vine.svg",
+          "name" : "Vine",
+          "position" : { "scale" : 1, "translation-in-points" : [ 0, 0 ] }
+        }
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.4 },
+      "specular" : "inside",
+      "translucency" : { "enabled" : true, "value" : 0.2 }
+    },
+    {
+      "blur-material" : 0.4,
+      "layers" : [
+        {
+          "image-name" : "Grapes.svg",
+          "name" : "Grapes",
+          "position" : { "scale" : 1, "translation-in-points" : [ 0, 0 ] }
+        }
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.5 },
+      "specular" : "inside",
+      "translucency" : { "enabled" : true, "value" : 0.3 }
+    },
+    {
+      "layers" : [
+        {
+          "fill" : { "solid" : "extended-gray:1.00000,0.22000" },
+          "glass" : false,
+          "image-name" : "Ring.svg",
+          "name" : "Ring",
+          "position" : { "scale" : 1, "translation-in-points" : [ 0, 0 ] }
+        }
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.3 },
+      "specular" : false,
+      "translucency" : { "enabled" : false, "value" : 0.5 }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [ "watchOS" ],
+    "squares" : "shared"
+  }
+}

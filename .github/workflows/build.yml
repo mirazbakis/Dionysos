@@ -1,0 +1,122 @@
+name: Build IPA
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: xcode-27
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest
+
+      - name: Export DEVELOPER_DIR
+        run: echo "DEVELOPER_DIR=$(xcode-select -p)" >> "$GITHUB_ENV"
+
+      - name: Install tools
+        run: |
+          rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+          brew install xcodegen
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Build Rust FFI xcframework
+        run: bash ./build-rust.sh
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build (Release, unsigned)
+        run: |
+          xcodebuild \
+            -project Dionysos.xcodeproj \
+            -scheme Dionysos \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          APP="build/dd/Build/Products/Release-iphoneos/Dionysos.app"
+          rm -rf build/Payload Dionysos.ipa
+          mkdir -p build/Payload
+          cp -R "$APP" build/Payload/
+          find build/Payload -name '.DS_Store' -delete
+          # Ad-hoc ("fake") sign so sideload signers accept the IPA; they re-sign it anyway.
+          codesign --force --sign - --timestamp=none --generate-entitlement-der build/Payload/Dionysos.app
+          codesign --verify --verbose build/Payload/Dionysos.app
+          (cd build && zip -qry -X ../Dionysos.ipa Payload)
+          ls -lh Dionysos.ipa
+
+      - name: Check the IPA
+        run: |
+          set -euo pipefail
+          unzip -tq Dionysos.ipa
+          rm -rf build/check && mkdir -p build/check
+          unzip -q Dionysos.ipa -d build/check
+          APP=build/check/Payload/Dionysos.app
+          test -d "$APP"
+          for key in CFBundleIdentifier CFBundleExecutable CFBundleVersion CFBundleShortVersionString MinimumOSVersion; do
+            echo "$key = $(/usr/libexec/PlistBuddy -c "Print :$key" "$APP/Info.plist")"
+          done
+          EXE="$APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")"
+          test -x "$EXE"
+          lipo -info "$EXE"
+          codesign --verify --verbose "$APP"
+
+      # archive: false uploads the .ipa itself. Zipped artifacts download as
+      # Dionysos-unsigned.zip with the IPA inside, and signers given that zip
+      # report "archive appears to be corrupted".
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v7
+        with:
+          path: Dionysos.ipa
+          archive: false
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Attach IPA to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: Dionysos.ipa
+
+      # Keeps a public "Nightly build" release pointing at the newest main build,
+      # so anyone can download the IPA without a GitHub account.
+      - name: Publish nightly build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git tag -f nightly
+          git push -f origin refs/tags/nightly
+          NOTES="Latest unsigned build of \`main\` (commit ${GITHUB_SHA::7}). Updated automatically on every push. Sign it with your own tool before installing. For stable builds, use the versioned releases."
+          # Recreate the release each time so its date shows when this build was made.
+          gh release delete nightly --yes >/dev/null 2>&1 || true
+          gh release create nightly Dionysos.ipa --prerelease --title "Nightly build" --notes "$NOTES"
