@@ -134,6 +134,9 @@ struct SignView: View {
                         .font(.subheadline)
                         .foregroundStyle(Aurora.secondaryText)
                         .multilineTextAlignment(.center)
+                    Text("An app by mbakis")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Aurora.orchid)
                 }
                 statusChip
             }

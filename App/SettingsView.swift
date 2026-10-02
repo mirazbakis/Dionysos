@@ -32,6 +32,9 @@ struct SettingsView: View {
                             Text("Your apps, signed with your own Apple ID")
                                 .font(.caption)
                                 .foregroundStyle(Aurora.lilac.opacity(0.8))
+                            Text("An app by mbakis")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Aurora.orchid)
                         }
                     }
                     .padding(.vertical, 10)
@@ -129,7 +132,7 @@ struct SettingsView: View {
                 .auroraRow()
 
                 Section("Legal") {
-                    Link("Dionysos License", destination: URL(string: "https://github.com/mirazbakis/Dionysos/blob/main/LICENSE")!)
+                    Link("Dionysos License", destination: URL(string: "https://github.com/mirazbakis/Dionysos/blob/main/LICENSE.md")!)
                     Link("Third-Party Notices", destination: URL(string: "https://github.com/mirazbakis/Dionysos/blob/main/THIRD_PARTY_NOTICES.md")!)
                     Link("Security Policy", destination: URL(string: "https://github.com/mirazbakis/Dionysos/blob/main/SECURITY.md")!)
                 }

@@ -16,9 +16,14 @@ struct AcknowledgmentsView: View {
 
     private static func gh(_ path: String) -> URL { URL(string: "https://github.com/\(path)")! }
 
+    static let author = Credit(
+        name: "mbakis", author: "mirazbakis",
+        role: "Designed and built Dionysos: the app, multi-account signing, account management, the interface and the logo. Also the author of AltLoad.",
+        symbol: "sparkles", tint: Aurora.violet, url: gh("mirazbakis/Dionysos"))
+
     static let builtOn: [Credit] = [
         Credit(name: "AltLoad", author: "mirazbakis",
-               role: "The pairing, signing and on-device install engine Dionysos grew out of.",
+               role: "mbakis's on-device installer, whose pairing, signing and install engine Dionysos grew out of.",
                symbol: "arrow.down.app.fill", tint: Aurora.violet, url: gh("mirazbakis/AltLoad")),
         Credit(name: "isideload", author: "nab138",
                role: "Apple ID sign-in, the free developer portal API and code signing.",
@@ -63,10 +68,16 @@ struct AcknowledgmentsView: View {
             }
             .padding(.top, 4)
 
+            VStack(spacing: 10) {
+                SectionLabel(title: "Created By")
+                Link(destination: Self.gh("mirazbakis")) { row(Self.author) }
+                    .buttonStyle(.plain)
+            }
+
             section("Built On", Self.builtOn)
             section("Inspired By", Self.inspiredBy)
 
-            Text("Licenses for the code Dionysos includes are in Settings › Legal › Third-Party Notices.")
+            Text("Dionysos, an app by mbakis. Licenses for the code it includes are in Settings › Legal › Third-Party Notices.")
                 .font(.footnote)
                 .foregroundStyle(Aurora.secondaryText)
                 .multilineTextAlignment(.center)
